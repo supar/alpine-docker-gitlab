@@ -1,5 +1,7 @@
 # Alpine Gitlab Docker
 
+This project is a fork of the [alpine-docker-gitlab](https://github.com/alpinelinux/alpine-docker-gitlab) repository. The main objective of this fork is to simplify the original setup by removing the dependencies on Docker Registry, PostgreSQL, and Nginx. Instead, these services will be made available either on the host machine or remotely.
+
 [![Build Status](https://cloud.drone.io/api/badges/alpinelinux/alpine-docker-gitlab/status.svg)](https://cloud.drone.io/alpinelinux/alpine-docker-gitlab)
 
 Alpine Linux based docker image and tools for Gitlab.
