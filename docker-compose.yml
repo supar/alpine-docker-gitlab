@@ -1,7 +1,7 @@
 version: '3.5'
 services:
   gitlab:
-    image: alpinelinux/gitlab:$GITLAB_VERSION
+    image: supar/gitlab:$GITLAB_VERSION
     build:
       context: .
       args:
