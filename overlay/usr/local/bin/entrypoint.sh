@@ -5,6 +5,7 @@ set -eu
 # https://gitlab.com/gitlab-org/omnibus-gitlab/merge_requests/1707
 export RUBYOPT="${RUBYOPT:---disable-gems}"
 export RAILS_ENV="${RAILS_ENV:-production}"
+: "${POSTGRES_HOST:=postgres}"
 : "${POSTGRES_DB:=$POSTGRES_USER}"
 : "${GITLAB_SERVICES:=nginx sidekiq workhorse puma}"
 
@@ -21,9 +22,9 @@ BASECONF="
 create_db() {
 	export PGPASSWORD=$POSTGRES_PASSWORD
 	echo "Connecting to postgres.."
-	while ! pg_isready -qh postgres; do sleep 1; done
+	while ! pg_isready -qh ${POSTGRES_HOST}; do sleep 1; done
 	echo "Connection succesful"
-	psql -h postgres -U $POSTGRES_USER -d $POSTGRES_DB \
+	psql -h ${POSTGRES_HOST} -U $POSTGRES_USER -d $POSTGRES_DB \
 		-c "CREATE EXTENSION IF NOT EXISTS pg_trgm;"
 }
 
@@ -99,7 +100,7 @@ postgres_conf() {
 	    pool: 10
 	    username: $POSTGRES_USER
 	    password: "$POSTGRES_PASSWORD"
-	    host: postgres
+	    host: $POSTGRES_HOST
 	EOF
 }
 
@@ -109,57 +110,6 @@ workhorse_conf() {
 	[redis]
 	URL = "tcp://redis:6379"
 	EOF
-}
-
-registry_conf() {
-	mkdir -p /etc/gitlab/registry
-	cat <<-EOF >/etc/gitlab/registry/config.yml
-	version: 0.1
-	storage:
-	  s3:
-	    accesskey: $REGISTRY_S3_ACCESSKEY
-	    secretkey: $REGISTRY_S3_SECRET
-	    region: $REGISTRY_S3_REGION
-	    regionendpoint: $REGISTRY_S3_ENDPOINT
-	    bucket: $REGISTRY_S3_BUCKET
-	    secure: true
-	    v4auth: true
-	    rootdirectory: /
-	  delete:
-	    enabled: true
-	redis:
-	  addr: redis:6379
-	  db: 1
-	http:
-	  addr: 0.0.0.0:5000
-	  secret: notused
-	auth:
-	  token:
-	    realm: $REGISTRY_TOKEN_REALM
-	    service: container_registry
-	    issuer: gitlab-issuer
-	    rootcertbundle: /etc/docker/certs/gitlab.crt
-	    autoredirect: false
-	EOF
-}
-
-registry_certs() {
-	if [ -f /home/git/certs/registry/private/gitlab.key ]; then
-		return
-	fi
-
-	install -dm0755 -ogit -ggit /home/git/certs/registry/private
-	install -dm0755 -ogit -ggit /home/git/certs/registry/public
-
-	su-exec git:git openssl req \
-		-x509 \
-		-newkey rsa:4096 \
-		-sha256 \
-		-days 3650 \
-		-nodes \
-		-subj "/CN=gitlab-issuer" \
-		-keyout /home/git/certs/registry/private/gitlab.key \
-		-out /home/git/certs/registry/public/gitlab.crt
 }
 
 setup_gitlab() {
@@ -177,7 +127,6 @@ prepare_dirs() {
 		/home/git/gitlab/shared/artifacts \
 		/home/git/gitlab/shared/lfs-objects	\
 		/home/git/gitlab/shared/pages \
-		/home/git/gitlab/shared/registry \
 		/home/git/run/gitlab \
 		/var/log/s6 \
 		/var/log/gitlab
@@ -206,8 +155,6 @@ setup() {
 	postgres_conf
 	install_conf
 	workhorse_conf
-	registry_conf
-	registry_certs
 	prepare_dirs
 	prepare_conf
 	setup_gitlab
@@ -245,7 +192,7 @@ dump_db() {
 	local today="$(date +%Y-%m-%d)"
 	mkdir -p /home/git/backup
 	PGPASSWORD="$POSTGRES_PASSWORD" pg_dump --create --format c \
-		--host=postgres --user="$POSTGRES_USER" --dbname="$POSTGRES_DB" > \
+		--host=$POSTGRES_HOST --user="$POSTGRES_USER" --dbname="$POSTGRES_DB" > \
 		/home/git/backup/"$POSTGRES_DB-$today".db
 	echo "Finished dumping: $POSTGRES_DB-$today.db"
 }
@@ -262,8 +209,6 @@ cleanup() {
 
 config() {
 	install_conf
-	registry_conf
-	registry_certs
 	prepare_dirs
 	prepare_conf
 	rebuild_conf
