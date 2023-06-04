@@ -45,7 +45,6 @@ apk add --no-cache --virtual .gitlab-runtime \
 	s6 \
 	openssh \
 	rsync \
-	nginx \
 	gnupg \
 	logrotate \
 	tzdata \
@@ -110,7 +109,6 @@ apply_patch -p1 -i /tmp/gitlab/mr-119042-mr-failed.patch
 apply_patch -p1 -i /tmp/gitlab/openssl-3.0.patch
 apply_patch -p1 -i /tmp/gitlab/ruby-3.1-compat.patch
 apply_patch -p0 -i /tmp/logrotate/logrotate-defaults.patch
-apply_patch -p0 -i /tmp/nginx/nginx-config.patch
 apply_patch -p0 -i /tmp/resque/resque-config.patch
 
 # temporary symlink the example configs to make setup happy

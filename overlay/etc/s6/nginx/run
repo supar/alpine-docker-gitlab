@@ -1,6 +1,0 @@
-#!/bin/sh
-
-echo "Starting nginx.."
-exec 2>&1
-rm -f /tmp/nginx.pid
-nginx -g "daemon off;pid /tmp/nginx.pid; error_log /dev/stdout info;"

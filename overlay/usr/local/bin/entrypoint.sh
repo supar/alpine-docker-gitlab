@@ -7,7 +7,7 @@ export RUBYOPT="${RUBYOPT:---disable-gems}"
 export RAILS_ENV="${RAILS_ENV:-production}"
 : "${POSTGRES_HOST:=postgres}"
 : "${POSTGRES_DB:=$POSTGRES_USER}"
-: "${GITLAB_SERVICES:=nginx sidekiq workhorse puma}"
+: "${GITLAB_SERVICES:=sidekiq workhorse puma}"
 
 # base config files found in gitlab/config dir
 BASECONF="
@@ -44,16 +44,6 @@ install_conf() {
 		install -Dm644 /home/git/gitlab/lib/support/logrotate/gitlab \
 			/etc/gitlab/logrotate/gitlab
 	fi
-	if [ ! -f "/etc/gitlab/nginx/http.d/default.conf" ]; then
-		if [ -f "/etc/gitlab/nginx/conf.d/default.conf" ]; then
-			echo "Migrating nginx config from conf.d to http.d"
-			install -Dm0644 /etc/gitlab/nginx/conf.d/* -t /etc/gitlab/nginx/http.d/
-			rm -r /etc/gitlab/nginx/conf.d
-		else
-			install -Dm644 /home/git/gitlab/lib/support/nginx/gitlab \
-				/etc/gitlab/nginx/http.d/default.conf
-		fi
-	fi
 }
 
 link_config() {
@@ -74,7 +64,6 @@ enable_services() {
 prepare_conf() {
 	echo "Preparing configuration.."
 	link_config "/etc/gitlab/gitlab" "/home/git/gitlab/config"
-	link_config "/etc/gitlab/nginx" "/etc/nginx"
 
 	for key in /etc/gitlab/ssh/ssh_host*.pub; do
 		ln -fs "$key" /etc/ssh/
@@ -130,7 +119,6 @@ prepare_dirs() {
 		/home/git/run/gitlab \
 		/var/log/s6 \
 		/var/log/gitlab
-	mkdir -p /var/log/nginx
 	# correct permissions of mount points
 	chown -R git:git /etc/gitlab \
 		/home/git/repositories \
