@@ -8,9 +8,9 @@ env:
   DOCKER_BUILDKIT: 1
 
 vars:
-  GITLAB_IMAGE: "alpinelinux/gitlab:{{.GITLAB_VERSION}}"
-  GITALY_IMAGE: "alpinelinux/gitaly:{{.GITALY_SERVER_VERSION}}"
-  GITLAB_SHELL_IMAGE: "alpinelinux/gitlab-shell:{{.GITLAB_SHELL_VERSION}}"
+  GITLAB_IMAGE: "supar/gitlab:{{.GITLAB_VERSION}}"
+  GITALY_IMAGE: "supar/gitaly:{{.GITALY_SERVER_VERSION}}"
+  GITLAB_SHELL_IMAGE: "supar/gitlab-shell:{{.GITLAB_SHELL_VERSION}}"
   COMPOSE:
     sh: docker compose version >/dev/null 2>&1 && echo "docker compose" || echo "docker-compose"
 
