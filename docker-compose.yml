@@ -15,8 +15,8 @@ services:
       - 127.0.0.1:8181:8181
     volumes:
       - ${GITLAB_STORAGE_ROOT:-./storage}/repositories:/home/git/repositories
-      - ${GITLAB_CONFIG_ROOT:-./storage}:/etc/gitlab
-      - ${GITLAB_LOG_ROOT:-./storage}:/var/log
+      - ${GITLAB_CONFIG_ROOT:-./storage/config}:/etc/gitlab
+      - ${GITLAB_LOG_ROOT:-./storage/log}:/var/log
       - ${GITLAB_STORAGE_ROOT:-./storage}/builds:/home/git/gitlab/builds
       - ${GITLAB_STORAGE_ROOT:-./storage}/shared:/home/git/gitlab/shared
       - ${GITLAB_STORAGE_ROOT:-./storage}/uploads:/home/git/gitlab/public/uploads
@@ -33,9 +33,6 @@ services:
       - POSTGRES_USER
       - POSTGRES_DB
       - POSTGRES_PASSWORD
-      - GITLAB_ROOT_PASSWORD
-      - GITLAB_BACKUP_SKIP
-      - GITLAB_SERVICES
   gitaly:
     image: alpinelinux/gitaly:$GITALY_SERVER_VERSION
     init: true
@@ -50,10 +47,10 @@ services:
     depends_on:
       - gitlab-shell # for gitlab-secret
     volumes:
-      - ./storage/repositories:/home/git/repositories
-      - ./storage/config/gitaly/:/etc/gitlab/gitaly
-      - ./storage/config/gitlab-shell:/etc/gitlab/gitlab-shell
-      - ./storage/log/gitaly:/var/log/gitaly
+      - ${GITLAB_STORAGE_ROOT:-./storage}/repositories:/home/git/repositories
+      - ${GITLAB_CONFIG_ROOT:-./storage/config}/gitaly/:/etc/gitlab/gitaly
+      - ${GITLAB_CONFIG_ROOT:-./storage/config}/gitlab-shell:/etc/gitlab/gitlab-shell
+      - ${GITLAB_LOG_ROOT:-./storage/log}/gitaly:/var/log/gitaly
       - sockets:/home/git/run/
       - gitlab-secret:/etc/gitlab/gitlab-shell/secret
   gitlab-shell:
@@ -67,9 +64,9 @@ services:
     ports:
       - 2222:22
     volumes:
-      - ./storage/config/gitlab-shell:/etc/gitlab/gitlab-shell
-      - ./storage/config/ssh:/etc/gitlab/ssh
-      - ./storage/log:/var/log
+      - ${GITLAB_CONFIG_ROOT:-./storage/config}/gitlab-shell:/etc/gitlab/gitlab-shell
+      - ${GITLAB_CONFIG_ROOT:-./storage/config}/ssh:/etc/gitlab/ssh
+      - ${GITLAB_LOG_ROOT:-./storage/log}:/var/log
       - ssh-authorized-keys:/home/git/.ssh/
       - sockets:/home/git/run/
       - gitlab-secret:/etc/gitlab/gitlab-shell/secret
@@ -77,7 +74,7 @@ services:
     image: redis:6-alpine
     restart: always
     volumes:
-      - ./storage/redis:/data
+      - ${GITLAB_STORAGE_ROOT:-./storage}/redis:/data
     entrypoint: redis-server --appendonly yes
 
 volumes:
