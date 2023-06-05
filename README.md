@@ -15,14 +15,19 @@ Alpine Linux based docker image and tools for Gitlab.
 
 ## Setup
 
-To get Gitlab up and running you need to first generate 2 secrets and provide
-then as environment variables. Most suitable is via [.env](https://docs.docker.com/compose/env-file/)
-file in alongside your docker-compose file. Mandatory variables are:
+To get Gitlab up and running you need to first generate 2 secrets and provide then as environment variables. Most suitable is via [.env](https://docs.docker.com/compose/env-file/) file in alongside your docker-compose file. Mandatory variables are:
 
  - GITLAB_HOSTNAME
  - GITLAB_ROOT_PASSWORD
  - POSTGRES_PASSWORD
  - POSTGRES_USER
+ - POSTGRES_HOST
+
+Optional variables are:
+
+ - GITLAB_STORAGE_ROOT
+ - GITLAB_CONFIG_ROOT
+ - GITLAB_LOG_ROOT
 
 After which you need to create and bring up the containers
 
