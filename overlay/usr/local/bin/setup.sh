@@ -52,7 +52,8 @@ apk add --no-cache --virtual .gitlab-runtime \
 	lua5.3 \
 	lua-mqtt-publish \
 	lua-cjson \
-	openssl
+	openssl \
+	tar
 
 # add buildtime dependencies
 apk add --no-cache --virtual .gitlab-buildtime \

@@ -113,8 +113,10 @@ prepare_dirs() {
 		/home/git/gitlab/public/uploads \
 		/home/git/gitlab/shared/pages \
 		/home/git/gitlab/shared/artifacts \
+		/home/git/gitlab/shared/terraform_state \
 		/home/git/gitlab/shared/lfs-objects	\
 		/home/git/gitlab/shared/pages \
+		/home/git/gitlab/shared/packages \
 		/home/git/run/gitlab \
 		/var/log/s6 \
 		/var/log/gitlab
@@ -184,6 +186,29 @@ dump_db() {
 	echo "Finished dumping: $POSTGRES_DB-$today.db"
 }
 
+restore() {
+	cd /home/git/gitlab
+	echo "Restore GitLab backup.."
+	echo "NOTE: First, ensure your backup tar file is in the backup directory"
+	echo "described in the gitlab.yml configuration"
+	echo ""
+	echo "backup:"
+	echo "  path: \"tmp/backups\""
+	echo ""
+	echo "BACKUP=timestamp_of_backup required if more than one backup exists,"
+	echo "\"_gitlab_backup.tar\" shoul be omitted from the name."
+	su-exec git bundle exec rake gitlab:backup:restore BACKUP=${BACKUP}
+	echo "Checking gitlab restore.."
+	su-exec git bundle exec rake gitlab:check SANITIZE=true
+	secrets_check
+}
+
+secrets_check() {
+	cd /home/git/gitlab
+	echo "Secrets GitLab check.."
+	su-exec git bundle exec rake gitlab:doctor:secrets
+}
+
 logrotate() {
 	echo "Rotating log files.."
 	/usr/sbin/logrotate /etc/gitlab/logrotate/gitlab
@@ -240,6 +265,7 @@ case "${1:-help}" in
 	config) config ;;
 	upgrade) upgrade ;;
 	backup) backup ;;
+	restore) restore ;;
 	dump) dump_db ;;
 	verify) verify ;;
 	logrotate) logrotate ;;
