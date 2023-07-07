@@ -197,7 +197,9 @@ restore() {
 	echo ""
 	echo "BACKUP=timestamp_of_backup required if more than one backup exists,"
 	echo "\"_gitlab_backup.tar\" shoul be omitted from the name."
-	su-exec git bundle exec rake gitlab:backup:restore BACKUP=${BACKUP}
+	echo ""
+
+	su-exec git bundle exec rake gitlab:backup:restore force=yes BACKUP=${BACKUP:=}
 	echo "Checking gitlab restore.."
 	su-exec git bundle exec rake gitlab:check SANITIZE=true
 	secrets_check

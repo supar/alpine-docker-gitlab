@@ -38,6 +38,8 @@ get_source() {
 apk -U upgrade --no-cache -a
 # add runtime dependencies
 apk add --no-cache --virtual .gitlab-runtime \
+	xz \
+	tar \
 	git \
 	su-exec \
 	nodejs \
@@ -52,8 +54,7 @@ apk add --no-cache --virtual .gitlab-runtime \
 	lua5.3 \
 	lua-mqtt-publish \
 	lua-cjson \
-	openssl \
-	tar
+	openssl
 
 # add buildtime dependencies
 apk add --no-cache --virtual .gitlab-buildtime \
@@ -80,8 +81,8 @@ passwd -u git
 # 7. Redis
 # we use a seperate container for redis
 
-echo "### Set system wide bundler settings ###"
-bundle config set --global jobs $(nproc)
+echo "### Set root bundler settings ###"
+bundle config set --global jobs "$(nproc)"
 bundle config set --global silence_root_warning true
 bundle config set --global force_ruby_platform true
 # we do not use deployment and share gems via system
@@ -89,6 +90,9 @@ bundle config set --global deployment false
 bundle config set --global without development test mysql aws kerberos
 # https://github.com/protocolbuffers/protobuf/issues/2335#issuecomment-579913357
 bundle config set --global build.google-protobuf --with-cflags=-D__va_copy=va_copy
+
+# Persist the 'without' config system wide
+printf -- '---\nBUNDLE_WITHOUT: "development:test:mysql:aws:kerberos"\n' >/usr/local/bundle/config
 
 #########
 ## gitlab
@@ -107,8 +111,6 @@ apply_patch -p0 -i /tmp/gitlab/puma-socket-path.patch
 apply_patch -p1 -i /tmp/gitlab/cable-defaults.patch
 apply_patch -p1 -i /tmp/gitlab/database-remove-geo.patch
 apply_patch -p1 -i /tmp/gitlab/mr-119042-mr-failed.patch
-apply_patch -p1 -i /tmp/gitlab/openssl-3.0.patch
-apply_patch -p1 -i /tmp/gitlab/ruby-3.1-compat.patch
 apply_patch -p0 -i /tmp/logrotate/logrotate-defaults.patch
 apply_patch -p0 -i /tmp/resque/resque-config.patch
 
@@ -182,7 +184,9 @@ chown -R git:git /home/git
 rm -rf /home/git/gitlab/node_modules \
     /home/git/gitlab/docker \
     /home/git/gitlab/qa \
-    /root/.bundle \
+    /home/git/gitlab/.git \
+    /home/git/gitlab/tmp/cache \
+    /root/.bundle/cache \
     /root/.cache \
     /root/go \
     /var/cache/apk/* \

@@ -119,6 +119,7 @@ tasks:
     deps:
       - .build-args
       - build-gitlab-shell
+      - build-gitaly
       - deploy-libs-gitlab
     sources:
       - build-args.env
@@ -150,6 +151,7 @@ tasks:
       - build-args.env
       - gitaly/*
       - gitaly/**/*
+    run: once
     status:
       - docker image inspect {{.GITALY_IMAGE}}
   save-image-gitaly:

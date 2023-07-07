@@ -9,6 +9,7 @@ services:
         - RUBY_VERSION
         - GITLAB_VERSION
         - GITLAB_SHELL_VERSION
+        - GITALY_SERVER_VERSION
     hostname: ${GITLAB_HOSTNAME:-gitlab}
     restart: always
     ports:
