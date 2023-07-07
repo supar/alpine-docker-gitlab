@@ -100,6 +100,25 @@ workhorse_conf() {
 	EOF
 }
 
+registry_certs() {
+	if [ -f /home/git/certs/registry/private/gitlab.key ]; then
+		return
+	fi
+
+	install -dm0755 -ogit -ggit /home/git/certs/registry/private
+	install -dm0755 -ogit -ggit /home/git/certs/registry/public
+
+	su-exec git:git openssl req \
+		-x509 \
+		-newkey rsa:4096 \
+		-sha256 \
+		-days 3650 \
+		-nodes \
+		-subj "/CN=gitlab-issuer" \
+		-keyout /home/git/certs/registry/private/gitlab.key \
+		-out /home/git/certs/registry/public/gitlab.crt
+}
+
 setup_gitlab() {
 	echo "Setting up gitlab..."
 	cd /home/git/gitlab
@@ -247,17 +266,19 @@ usage() {
     cat <<- EOF
 	Usage: ${0##*/} [OPTION]
 	Functions to operate on GitLab instance
-	  start      start GitLab
-	  setup      setup GitLab (used by docker build use with care)
-	  config     prepare configuration files
-	  upgrade    upgrade GitLab
-	  backup     backup GitLab (excluding secrets.yml, gitlab.yml)
-	  dump       dump database in /home/git/backup
-	  verify     verify Gitlab installation
-	  logrotate  rotate logfiles
-	  cleanup    remove older CI log files
-	  shell      enter interactive shell
-	  help       this help message
+	  start             start GitLab
+	  setup             setup GitLab (used by docker build use with care)
+	  config            prepare configuration files
+	  upgrade           upgrade GitLab
+	  backup            backup GitLab (excluding secrets.yml, gitlab.yml)
+	  restore           restore GitLab (excluding secrets.yml, gitlab.yml)
+	  registry_certs    create registry certificates
+	  dump              dump database in /home/git/backup
+	  verify            verify Gitlab installation
+	  logrotate         rotate logfiles
+	  cleanup           remove older CI log files
+	  shell             enter interactive shell
+	  help              this help message
 	EOF
 }
 
@@ -268,6 +289,7 @@ case "${1:-help}" in
 	upgrade) upgrade ;;
 	backup) backup ;;
 	restore) restore ;;
+	registry_certs) registry_certs ;;
 	dump) dump_db ;;
 	verify) verify ;;
 	logrotate) logrotate ;;
