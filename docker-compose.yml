@@ -35,6 +35,13 @@ services:
       - POSTGRES_USER
       - POSTGRES_DB
       - POSTGRES_PASSWORD
+      - REGISTRY_S3_ACCESSKEY
+      - REGISTRY_S3_SECRET
+      - REGISTRY_S3_REGION
+      - REGISTRY_S3_ENDPOINT
+      - REGISTRY_S3_BUCKET
+      - REGISTRY_S3_ROOTDIR
+      - REGISTRY_TOKEN_REALM
   gitaly:
     image: alpinelinux/gitaly:$GITALY_SERVER_VERSION
     init: true
@@ -78,7 +85,6 @@ services:
     volumes:
       - ${GITLAB_STORAGE_ROOT:-./storage}/redis:/data
     entrypoint: redis-server --appendonly yes
-
   registry:
     image: registry:2
     ports:
@@ -86,8 +92,8 @@ services:
     depends_on:
       - gitlab
     volumes:
-      - ./storage/config/registry:/etc/docker/registry/
-      - ./storage/certs/registry/public:/etc/docker/certs
+      -  ${GITLAB_CONFIG_ROOT:-./storage/config}/registry:/etc/docker/registry/
+      -  ${GITLAB_CONFIG_ROOT:-./storage}/certs/registry/public:/etc/docker/certs
 
 volumes:
   sockets:

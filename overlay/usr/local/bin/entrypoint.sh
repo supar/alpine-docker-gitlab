@@ -114,14 +114,14 @@ registry_conf() {
 	version: 0.1
 	storage:
 	  s3:
-	    accesskey: $REGISTRY_S3_ACCESSKEY
-	    secretkey: $REGISTRY_S3_SECRET
-	    region: $REGISTRY_S3_REGION
-	    regionendpoint: $REGISTRY_S3_ENDPOINT
-	    bucket: $REGISTRY_S3_BUCKET
+	    accesskey: ${REGISTRY_S3_ACCESSKEY:=}
+	    secretkey: ${REGISTRY_S3_SECRET:=}
+	    region: ${REGISTRY_S3_REGION:=}
+	    regionendpoint: ${REGISTRY_S3_ENDPOINT:=}
+	    bucket: ${REGISTRY_S3_BUCKET:=}
 	    secure: true
 	    v4auth: true
-	    rootdirectory: $REGISTRY_S3_ROOTDIR
+	    rootdirectory: ${REGISTRY_S3_ROOTDIR:=}
 	  delete:
 	    enabled: true
 	redis:
@@ -132,7 +132,7 @@ registry_conf() {
 	  secret: notused
 	auth:
 	  token:
-	    realm: $REGISTRY_TOKEN_REALM
+	    realm: ${REGISTRY_TOKEN_REALM:=}
 	    service: container_registry
 	    issuer: gitlab-issuer
 	    rootcertbundle: /etc/docker/certs/gitlab.crt
