@@ -22,7 +22,7 @@ services:
       - ${GITLAB_STORAGE_ROOT:-./storage}/shared:/home/git/gitlab/shared
       - ${GITLAB_STORAGE_ROOT:-./storage}/uploads:/home/git/gitlab/public/uploads
       - ${GITLAB_STORAGE_ROOT:-./storage}/plugins:/home/git/gitlab/plugins
-#      - ${GITLAB_STORAGE_ROOT:-./storage}/certs/registry:/home/git/certs/registry
+      - ${GITLAB_STORAGE_ROOT:-./storage}/certs/registry:/home/git/certs/registry
       - ssh-authorized-keys:/home/git/.ssh/
       - gitlab-secret:/etc/gitlab/gitlab-shell/secret
       - sockets:/home/git/run/
@@ -64,7 +64,7 @@ services:
         - ALPINE_VERSION
         - GITLAB_SHELL_VERSION
     ports:
-      - 2222:22
+      - 127.0.0.1:2222:22
     volumes:
       - ${GITLAB_CONFIG_ROOT:-./storage/config}/gitlab-shell:/etc/gitlab/gitlab-shell
       - ${GITLAB_CONFIG_ROOT:-./storage/config}/ssh:/etc/gitlab/ssh
@@ -78,6 +78,16 @@ services:
     volumes:
       - ${GITLAB_STORAGE_ROOT:-./storage}/redis:/data
     entrypoint: redis-server --appendonly yes
+
+  registry:
+    image: registry:2
+    ports:
+      - 127.0.0.1:5000:5000
+    depends_on:
+      - gitlab
+    volumes:
+      - ./storage/config/registry:/etc/docker/registry/
+      - ./storage/certs/registry/public:/etc/docker/certs
 
 volumes:
   sockets:

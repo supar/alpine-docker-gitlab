@@ -93,10 +93,50 @@ postgres_conf() {
 }
 
 workhorse_conf() {
+	if [ -f /etc/gitlab/workhorse/config.toml ]; then
+		return
+	fi
+
 	mkdir -p /etc/gitlab/workhorse
 	cat <<- EOF >/etc/gitlab/workhorse/config.toml
 	[redis]
 	URL = "tcp://redis:6379"
+	EOF
+}
+
+registry_conf() {
+	if [ -f /etc/gitlab/registry/config.yml ]; then
+		return
+	fi
+
+	mkdir -p /etc/gitlab/registry
+	cat <<-EOF >/etc/gitlab/registry/config.yml
+	version: 0.1
+	storage:
+	  s3:
+	    accesskey: $REGISTRY_S3_ACCESSKEY
+	    secretkey: $REGISTRY_S3_SECRET
+	    region: $REGISTRY_S3_REGION
+	    regionendpoint: $REGISTRY_S3_ENDPOINT
+	    bucket: $REGISTRY_S3_BUCKET
+	    secure: true
+	    v4auth: true
+	    rootdirectory: $REGISTRY_S3_ROOTDIR
+	  delete:
+	    enabled: true
+	redis:
+	  addr: redis:6379
+	  db: 1
+	http:
+	  addr: 0.0.0.0:5000
+	  secret: notused
+	auth:
+	  token:
+	    realm: $REGISTRY_TOKEN_REALM
+	    service: container_registry
+	    issuer: gitlab-issuer
+	    rootcertbundle: /etc/docker/certs/gitlab.crt
+	    autoredirect: false
 	EOF
 }
 
@@ -163,6 +203,8 @@ setup() {
 	postgres_conf
 	install_conf
 	workhorse_conf
+	registry_conf
+	registry_certs
 	prepare_dirs
 	prepare_conf
 	setup_gitlab
@@ -242,6 +284,8 @@ cleanup() {
 
 config() {
 	install_conf
+	registry_conf
+	registry_certs
 	prepare_dirs
 	prepare_conf
 	rebuild_conf
@@ -289,7 +333,6 @@ case "${1:-help}" in
 	upgrade) upgrade ;;
 	backup) backup ;;
 	restore) restore ;;
-	registry_certs) registry_certs ;;
 	dump) dump_db ;;
 	verify) verify ;;
 	logrotate) logrotate ;;
